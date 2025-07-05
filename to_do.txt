@@ -1,0 +1,94 @@
+✅ Partie 1 : Parsing & Préparation des Commandes (Binôme A)
+📂 Lexer & Tokenizer
+
+Lire la ligne utilisateur (avec readline)
+
+Découper l'entrée en tokens (words, |, <, >, >>, <<, etc.)
+
+Gérer les quotes ('simple' et "double")
+
+    Gérer les escapes (\)
+
+🧠 Parsing & Construction de structure
+
+Vérifier la syntaxe de la ligne (ex: pas de | seul)
+
+Gérer la séparation des commandes par pipe (|)
+
+Gérer les redirections (<, >, >>, <<)
+
+Construire une structure t_command :
+
+    typedef struct s_command {
+        char **args;
+        char *infile;
+        char *outfile;
+        int   append;      // 1 si >>
+        int   heredoc;     // 1 si <<
+        struct s_command *next; // pour les pipes
+    } t_command;
+
+🧬 Expansions
+
+Gérer les variables d'environnement ($VAR)
+
+    Gérer les cas spéciaux : $?, quote + variable
+
+🚫 Gestion d'erreurs
+
+Détecter les erreurs de syntaxe (quotes non fermées, redirections invalides…)
+
+    Afficher des messages d’erreur clairs
+
+✅ Partie 2 : Exécution & Builtins (Binôme B)
+🚀 Exécution
+
+Prendre une structure t_command en entrée
+
+Gérer les forks (fork, execve)
+
+Gérer les pipes (pipe, dup2)
+
+Gérer les redirections (<, >, >>, <<)
+
+Implémenter le comportement du Heredoc (<<)
+
+Attendre les processus enfants (wait, waitpid)
+
+    Gérer les codes de retour ($?)
+
+🔧 Builtins
+
+echo
+
+cd
+
+pwd
+
+export
+
+unset
+
+env
+
+    exit
+
+🌍 Environnement
+
+Copier les variables d’environnement au démarrage
+
+Gérer export / unset
+
+Gérer getenv / setenv / liste perso (t_env ?)
+
+    Implémenter une liste chaînée d'env si besoin
+
+🛑 Signaux
+
+Gérer SIGINT (Ctrl+C)
+
+Gérer SIGQUIT (Ctrl+\)
+
+Gérer Ctrl+D (EOF)
+
+Comportement différent en heredoc / prompt / exécution
