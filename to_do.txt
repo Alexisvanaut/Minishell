@@ -1,94 +1,139 @@
-✅ Partie 1 : Parsing & Préparation des Commandes (Binôme A)
-📂 Lexer & Tokenizer
+To do list PARSING (alvanaut)
 
-Lire la ligne utilisateur (avec readline)
+TO-DO Liste Parsing Minishell
+🎯 Architecture générale
+Structure de données principales
 
-Découper l'entrée en tokens (words, |, <, >, >>, <<, etc.)
+ Définir t_token (type, value, next)
+ Définir t_command (args, redirections, next pour pipes)
+ Définir t_redirect (type, filename, delimiter pour heredoc)
+ Créer les énumérations pour les types de tokens
 
-Gérer les quotes ('simple' et "double")
+Headers et includes
 
-    Gérer les escapes (\)
+ Créer minishell.h avec toutes les structures
+ Inclure les bonnes librairies (readline, stdio, stdlib, etc.)
+ Définir les macros d'erreur
 
-🧠 Parsing & Construction de structure
+📝 Étape 1: Lexer/Tokenizer
+Lecture de l'input
 
-Vérifier la syntaxe de la ligne (ex: pas de | seul)
+ Implémenter la boucle principale avec readline()
+ Gérer le prompt "minishell$ "
+ Ajouter à l'historique avec add_history()
 
-Gérer la séparation des commandes par pipe (|)
+Tokenisation de base
 
-Gérer les redirections (<, >, >>, <<)
+ Fonction tokenize() qui découpe la ligne
+ Identifier les métacaractères : |, <, >, >>, <<
+ Séparer les mots (arguments/commandes)
+ Gérer les espaces comme délimiteurs
 
-Construire une structure t_command :
+Gestion des quotes
 
-    typedef struct s_command {
-        char **args;
-        char *infile;
-        char *outfile;
-        int   append;      // 1 si >>
-        int   heredoc;     // 1 si <<
-        struct s_command *next; // pour les pipes
-    } t_command;
+ Détecter les quotes simples '
+ Détecter les quotes doubles "
+ Vérifier que les quotes sont fermées
+ Dans les quotes simples : tout est littéral (pas d'expansion)
+ Dans les quotes doubles : expansion des $ mais pas des autres métacaractères
 
-🧬 Expansions
+🧠 Étape 2: Parsing syntaxique
+Validation syntaxique
 
-Gérer les variables d'environnement ($VAR)
+ Vérifier qu'on ne commence/finit pas par un pipe |
+ Vérifier qu'il n'y a pas deux pipes consécutifs ||
+ Vérifier que les redirections ont un fichier après (<, >, >>)
+ Vérifier que heredoc << a un délimiteur
 
-    Gérer les cas spéciaux : $?, quote + variable
+Construction de l'AST (liste de commandes)
 
-🚫 Gestion d'erreurs
+ Parser les pipes pour séparer les commandes
+ Pour chaque commande, extraire :
 
-Détecter les erreurs de syntaxe (quotes non fermées, redirections invalides…)
+ Le nom de la commande (premier argument)
+ Les arguments
+ Les redirections d'entrée (<, <<)
+ Les redirections de sortie (>, >>)
 
-    Afficher des messages d’erreur clairs
 
-✅ Partie 2 : Exécution & Builtins (Binôme B)
-🚀 Exécution
 
-Prendre une structure t_command en entrée
+Gestion des redirections
 
-Gérer les forks (fork, execve)
+ Identifier les redirections dans chaque commande
+ Les retirer des arguments de la commande
+ Les stocker dans la structure appropriée
+ Gérer les redirections multiples (dernière gagne)
 
-Gérer les pipes (pipe, dup2)
+🔧 Étape 3: Expansions
+Variables d'environnement
 
-Gérer les redirections (<, >, >>, <<)
+ Détecter les $VARIABLE dans les tokens
+ Récupérer la valeur avec getenv()
+ Remplacer $VAR par sa valeur
+ Ne pas expanser dans les quotes simples
+ Expanser dans les quotes doubles
 
-Implémenter le comportement du Heredoc (<<)
+Variables spéciales
 
-Attendre les processus enfants (wait, waitpid)
+ Implémenter $? (code de retour de la dernière commande)
+ Gérer $0, $1, etc. si nécessaire (pas demandé explicitement)
+ Gérer $$ (PID) si nécessaire
 
-    Gérer les codes de retour ($?)
+Cas limites d'expansion
 
-🔧 Builtins
+ $ suivi de rien ou d'un caractère invalide
+ Variables inexistantes (expansion vers chaîne vide)
+ Expansion dans différents contextes (commande, arguments, redirections)
 
-echo
+🛡️ Étape 4: Gestion d'erreurs
+Erreurs de syntaxe
 
-cd
+ Messages d'erreur pour quotes non fermées
+ Messages d'erreur pour redirections invalides
+ Messages d'erreur pour pipes invalides
+ Format des erreurs comme bash : bash: syntax error near unexpected token
 
-pwd
+Memory management
 
-export
+ Fonctions de libération pour t_token
+ Fonctions de libération pour t_command
+ Éviter les leaks dans tous les cas d'erreur
+ Tester avec valgrind
 
-unset
+🧪 Étape 5: Tests et debug
+Tests unitaires
 
-env
+ Tester le tokenizer avec différents inputs
+ Tester la gestion des quotes
+ Tester les expansions de variables
+ Tester les cas d'erreur
 
-    exit
+Tests d'intégration
 
-🌍 Environnement
+ Comparer avec bash pour les cas complexes
+ Tester les combinaisons : pipes + redirections + quotes + variables
+ Tester les cas limites (ligne vide, que des espaces, etc.)
 
-Copier les variables d’environnement au démarrage
+Debug
 
-Gérer export / unset
+ Fonction d'affichage de la liste de tokens (debug)
+ Fonction d'affichage de la structure de commandes (debug)
+ Tests avec des inputs progressifs (simple → complexe)
 
-Gérer getenv / setenv / liste perso (t_env ?)
+📋 Ordre de développement recommandé
 
-    Implémenter une liste chaînée d'env si besoin
+Structures de données et fonctions utilitaires de base
+Tokenizer basique (sans quotes ni expansions)
+Gestion des quotes simples et doubles
+Parser syntaxique pour créer la structure de commandes
+Expansions des variables d'environnement
+Gestion d'erreurs et cas limites
+Tests et optimisations
 
-🛑 Signaux
+💡 Conseils
 
-Gérer SIGINT (Ctrl+C)
-
-Gérer SIGQUIT (Ctrl+\)
-
-Gérer Ctrl+D (EOF)
-
-Comportement différent en heredoc / prompt / exécution
+Commence simple : une commande sans arguments, puis ajoute la complexité
+Utilise bash comme référence pour tous les comportements
+Teste chaque fonction individuellement avant d'intégrer
+N'oublie pas que readline() peut avoir des leaks (c'est autorisé)
+Garde une variable globale pour les signaux uniquement
